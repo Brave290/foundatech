@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Light = Paper/Ink/Amber (Direction A). Dark = Midnight Ink + amber glow details. */
+:root {
+  --background: 210 20% 98%;
+  --foreground: 213 38% 13%;
+  --card: 0 0% 100%;
+  --card-foreground: 213 38% 13%;
+  --primary: 32 95% 44%;          /* amber-600: passes 4.5:1 with ink text on top */
+  --primary-foreground: 213 38% 13%;
+  --secondary: 210 16% 93%;
+  --secondary-foreground: 213 38% 13%;
+  --muted: 210 16% 93%;
+  --muted-foreground: 215 16% 38%;
+  --accent: 32 95% 94%;
+  --accent-foreground: 25 90% 30%;
+  --destructive: 0 72% 45%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 214 20% 88%;
+  --input: 214 20% 84%;
+  --ring: 32 95% 44%;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-card: 0 1px 2px rgb(22 32 46 / 0.06), 0 8px 24px -12px rgb(22 32 46 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(22 32 46 / 0.08), 0 12px 32px -12px rgb(22 32 46 / 0.18);
+}
+.dark {
+  --background: 213 40% 6%;
+  --foreground: 210 20% 96%;
+  --card: 213 34% 9%;
+  --card-foreground: 210 20% 96%;
+  --primary: 38 92% 50%;
+  --primary-foreground: 213 40% 8%;
+  --secondary: 213 30% 14%;
+  --secondary-foreground: 210 20% 96%;
+  --muted: 213 30% 14%;
+  --muted-foreground: 215 15% 68%;
+  --accent: 213 30% 16%;
+  --accent-foreground: 38 92% 60%;
+  --destructive: 0 62% 50%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 213 25% 20%;
+  --input: 213 25% 24%;
+  --ring: 38 92% 50%;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.5), 0 12px 32px -12px rgb(0 0 0 / 0.7);
+}
+
+@layer base {
+  * { @apply border-border; }
+  html { scroll-behavior: smooth; }
+  body { @apply bg-background text-foreground font-sans antialiased; }
+  h1, h2, h3, h4 { @apply font-display tracking-tight; }
+  ::selection { @apply bg-primary text-primary-foreground; }
+  /* Layer 3: keyboard users always see where they are */
+  :focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; border-radius: var(--radius-sm); }
+}
+
+/* Layer 10: respect reduced motion everywhere, globally */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
