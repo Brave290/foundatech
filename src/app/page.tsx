@@ -1,32 +1,32 @@
-import Link from "next/link";
-import { ArrowRight, FolderOpen } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { siteConfig } from "@/config/site";
+import { HeroCanvas } from "@/components/home/hero-canvas";
+import { PartnersMarquee } from "@/components/home/partners-marquee";
+import { ServicesSection } from "@/components/home/services-section";
+import { FeaturedProjects } from "@/components/home/featured-projects";
+import { ProcessSection } from "@/components/home/process-section";
+import { FounderSection } from "@/components/home/founder-section";
+import { TestimonialsSection } from "@/components/home/testimonials-section";
+import { PricingSection } from "@/components/home/pricing-section";
+import { FaqSection } from "@/components/home/faq-section";
+import { FinalCta } from "@/components/home/final-cta";
+import { FoundieTeaser } from "@/components/home/foundie-teaser";
+import { Reveal } from "@/components/site/reveal";
+import { getPublishedProjects } from "@/lib/data/projects";
 
-/** Placeholder hero — proves tokens, fonts, theme toggle work. Real hero ships in Wave 2. */
-export default function HomePage() {
+export default async function HomePage() {
+  const projects = await getPublishedProjects();
   return (
-    <main className="relative min-h-screen">
-      <header className="container flex items-center justify-between py-4">
-        <span className="font-display text-lg font-bold">{siteConfig.shortName}</span>
-        <ThemeToggle />
-      </header>
-      <section className="container grid min-h-[80vh] place-items-center pb-24 text-center">
-        <div className="max-w-2xl space-y-6">
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">{siteConfig.nameExpansion}</p>
-          <h1 className="text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl">{siteConfig.tagline}</h1>
-          <p className="text-lg text-muted-foreground">Wave 1 is alive: tokens, fonts, themes and SEO foundations are in place. The real homepage lands next.</p>
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <Button asChild size="lg" className="min-h-11">
-              <Link href="/contact">Start a project <ArrowRight className="ml-2 h-4 w-4" aria-hidden /></Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="min-h-11">
-              <Link href="/projects"><FolderOpen className="mr-2 h-4 w-4" aria-hidden /> See our work</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-    </main>
+    <>
+      <HeroCanvas videoSrc={process.env.NEXT_PUBLIC_HERO_VIDEO} />
+      <Reveal><PartnersMarquee /></Reveal>
+      <Reveal><ServicesSection /></Reveal>
+      <Reveal><ProcessSection /></Reveal>
+      <Reveal><FeaturedProjects projects={projects} /></Reveal>
+      <Reveal><FounderSection /></Reveal>
+      <Reveal><TestimonialsSection /></Reveal>
+      <Reveal><PricingSection /></Reveal>
+      <Reveal><FaqSection /></Reveal>
+      <Reveal><FinalCta /></Reveal>
+      <FoundieTeaser />
+    </>
   );
 }

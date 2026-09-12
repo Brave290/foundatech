@@ -2,65 +2,133 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Light = Paper/Ink/Amber (Direction A). Dark = Midnight Ink + amber glow details. */
-:root {
-  --background: 210 20% 98%;
-  --foreground: 213 38% 13%;
-  --card: 0 0% 100%;
-  --card-foreground: 213 38% 13%;
-  --primary: 32 95% 44%;          /* amber-600: passes 4.5:1 with ink text on top */
-  --primary-foreground: 213 38% 13%;
-  --secondary: 210 16% 93%;
-  --secondary-foreground: 213 38% 13%;
-  --muted: 210 16% 93%;
-  --muted-foreground: 215 16% 38%;
-  --accent: 32 95% 94%;
-  --accent-foreground: 25 90% 30%;
-  --destructive: 0 72% 45%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 214 20% 88%;
-  --input: 214 20% 84%;
-  --ring: 32 95% 44%;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --shadow-card: 0 1px 2px rgb(22 32 46 / 0.06), 0 8px 24px -12px rgb(22 32 46 / 0.12);
-  --shadow-lift: 0 2px 4px rgb(22 32 46 / 0.08), 0 12px 32px -12px rgb(22 32 46 / 0.18);
-}
-.dark {
-  --background: 213 40% 6%;
-  --foreground: 210 20% 96%;
-  --card: 213 34% 9%;
-  --card-foreground: 210 20% 96%;
-  --primary: 38 92% 50%;
-  --primary-foreground: 213 40% 8%;
-  --secondary: 213 30% 14%;
-  --secondary-foreground: 210 20% 96%;
-  --muted: 213 30% 14%;
-  --muted-foreground: 215 15% 68%;
-  --accent: 213 30% 16%;
-  --accent-foreground: 38 92% 60%;
-  --destructive: 0 62% 50%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 213 25% 20%;
-  --input: 213 25% 24%;
-  --ring: 38 92% 50%;
-  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
-  --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.5), 0 12px 32px -12px rgb(0 0 0 / 0.7);
-}
-
 @layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 213 38% 13%;
+    --card: 0 0% 100%;
+    --card-foreground: 213 38% 13%;
+    --primary: 32 95% 44%;
+    --primary-foreground: 213 38% 13%;
+    --secondary: 210 16% 93%;
+    --secondary-foreground: 213 38% 13%;
+    --muted: 210 16% 93%;
+    --muted-foreground: 215 16% 38%;
+    --accent: 32 95% 94%;
+    --accent-foreground: 25 90% 30%;
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 20% 88%;
+    --input: 214 20% 84%;
+    --ring: 32 95% 44%;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+  }
+  .dark {
+    --background: 213 40% 6%;
+    --foreground: 210 20% 96%;
+    --card: 213 34% 9%;
+    --card-foreground: 210 20% 96%;
+    --primary: 38 92% 50%;
+    --primary-foreground: 213 40% 8%;
+    --secondary: 213 30% 14%;
+    --secondary-foreground: 210 20% 96%;
+    --muted: 213 30% 14%;
+    --muted-foreground: 215 15% 68%;
+    --accent: 213 30% 16%;
+    --accent-foreground: 38 92% 60%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 213 25% 20%;
+    --input: 213 25% 24%;
+    --ring: 38 92% 50%;
+  }
   * { @apply border-border; }
   html { scroll-behavior: smooth; }
-  body { @apply bg-background text-foreground font-sans antialiased; }
-  h1, h2, h3, h4 { @apply font-display tracking-tight; }
+  body { @apply bg-background text-foreground antialiased; font-family: var(--font-sans), system-ui, sans-serif; }
+  h1, h2, h3, h4 { font-family: var(--font-display), Georgia, serif; @apply tracking-tight; }
   ::selection { @apply bg-primary text-primary-foreground; }
-  /* Layer 3: keyboard users always see where they are */
   :focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; border-radius: var(--radius-sm); }
 }
 
-/* Layer 10: respect reduced motion everywhere, globally */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* ===== Wave 2C shell effects ===== */
+.glass {
+  background: color-mix(in srgb, hsl(var(--background)) 72%, transparent);
+  backdrop-filter: blur(18px) saturate(1.6);
+  -webkit-backdrop-filter: blur(18px) saturate(1.6);
+}
+.text-outline {
+  color: transparent;
+  -webkit-text-stroke: 1px hsl(var(--foreground) / 0.28);
+}
+@keyframes preloader-letter {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.preloader-letter {
+  opacity: 0;
+  animation: preloader-letter 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 0.7; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+.pulse-ring { animation: pulse-ring 1.6s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee-track { animation: marquee 32s linear infinite; }
+.marquee:hover .marquee-track { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track, .pulse-ring { animation: none; }
+  .preloader-letter { animation: none; opacity: 1; transform: none; }
+}
+
+
+/* Type scale: 96 percent of default, per brand spec */
+html { font-size: 93%; }
+
+/* Page lock: kill rubber-band sway + reserve scrollbar gutter so nothing shifts */
+html {
+  scrollbar-gutter: stable;
+}
+body {
+}
+
+/* Zoom-hard: never allow horizontal scroll, even at max zoom */
+html, body { overflow-x: clip; }
+
+/* Hero word-drop cascade (masked, GPU-friendly, reduced-motion safe) */
+@keyframes word-drop {
+  from { transform: translateY(-110%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.word-drop {
+  animation: word-drop 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .word-drop { animation: none; transform: none; opacity: 1; }
+}
+
+/* Theme toggle burst ring */
+@keyframes toggle-burst {
+  from { transform: scale(0.3); opacity: 0.8; }
+  to { transform: scale(2.2); opacity: 0; }
+}
+.toggle-burst {
+  animation: toggle-burst 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .toggle-burst { animation: none; opacity: 0; }
+}
+
+/* Navbar + drawer hide the logo subline; footer keeps it */
+.hide-logo-sub .logo-sub { display: none; }

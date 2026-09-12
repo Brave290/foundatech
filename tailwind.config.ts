@@ -2,14 +2,14 @@ import type { Config } from "tailwindcss";
 
 /**
  * FOUNDA DESIGN TOKENS — Direction A "Trusted Corporate" + dark variant.
- * Every visual decision lives HERE. No random styles anywhere else. (Design Token Rule)
+ * Re-applied AFTER shadcn init (init overwrites this file; never run init again).
  * Radius scale: 3 values only. Shadow scale: 2 values only. Motion: 2 easings, 4 durations.
  */
 const config: Config = {
   darkMode: ["class"],
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
-    container: { center: true, padding: "1.25rem", screens: { "2xl": "1200px" } },
+    container: { center: true, padding: "1.25rem", screens: { "2xl": "1440px" } },
     extend: {
       colors: {
         border: "hsl(var(--border))",
@@ -25,22 +25,24 @@ const config: Config = {
         card: { DEFAULT: "hsl(var(--card))", foreground: "hsl(var(--card-foreground))" },
       },
       borderRadius: {
-        sm: "var(--radius-sm)", // 6px  — inputs, badges
-        md: "var(--radius-md)", // 10px — cards
-        lg: "var(--radius-lg)", // 14px — hero panels, modals
+        sm: "var(--radius-sm)",
+        md: "var(--radius-md)",
+        lg: "var(--radius-lg)",
       },
       boxShadow: {
         card: "var(--shadow-card)",
-        lift: "var(--shadow-lift)", // hover state: 2px lift + this, nothing louder
+        lift: "var(--shadow-lift)",
       },
       fontFamily: {
         display: ["var(--font-display)", "Georgia", "serif"],
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
         mono: ["var(--font-mono)", "ui-monospace", "monospace"],
+        serif: ["var(--font-serif)", "Georgia", "serif"],
+        serifdisplay: ["var(--font-serif-display)", "Georgia", "serif"],
       },
       transitionTimingFunction: {
-        soft: "cubic-bezier(0.22, 1, 0.36, 1)",  // entrances
-        inout: "cubic-bezier(0.65, 0, 0.35, 1)", // toggles, accordions
+        soft: "cubic-bezier(0.22, 1, 0.36, 1)",
+        inout: "cubic-bezier(0.65, 0, 0.35, 1)",
       },
       transitionDuration: {
         fast: "150ms",
@@ -50,6 +52,6 @@ const config: Config = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+
 };
 export default config;
