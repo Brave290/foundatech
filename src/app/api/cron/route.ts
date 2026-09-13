@@ -10,7 +10,7 @@ export async function GET(request: Request) {
   }
 
   const supabase = createAdminClient();
-  const { error } = await supabase.from("settings").select("id").limit(1).maybeSingle();
+  const { error } = await supabase.from("settings").select("key").limit(1).maybeSingle();
 
   return NextResponse.json(
     { ok: true, ts: Date.now(), db: error ? "error" : "connected" },
