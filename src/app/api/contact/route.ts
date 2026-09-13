@@ -14,11 +14,12 @@ export async function POST(req: Request) {
 
     const admin = createAdminClient();
 
-    const { error } = await admin.from("subscribers").insert({
+    const { error } = await admin.from("contact_submissions").insert({
       name: name.trim(),
       email: email.toLowerCase().trim(),
       subject: subject.trim(),
       message: message.trim(),
+      status: "new",
     });
 
     if (error) {

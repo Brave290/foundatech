@@ -11,7 +11,7 @@ export default function AdminEmailTemplatesPage() {
       <div className="mb-6">
         <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary">Communication</p>
         <h1 className="font-serifdisplay text-3xl font-bold tracking-tight">Email Templates</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Preview the automated emails sent to users.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Edit and save the automated emails sent to users.</p>
       </div>
       <EmailTemplates />
     </div>

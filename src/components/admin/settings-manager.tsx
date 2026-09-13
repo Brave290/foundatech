@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2 } from "lucide-react";
 import { saveSetting } from "@/lib/admin/actions";
@@ -26,12 +26,19 @@ const COMMON_KEYS = [
   "og_image",
 ];
 
-export function SettingsManager({ settings }: { settings: Setting[] }) {
+export function SettingsManager({ settings, restoreData }: { settings: Setting[]; restoreData?: Record<string, unknown> | null }) {
   const router = useRouter();
   const [items, setItems] = useState<Setting[]>(settings);
   const [newKey, setNewKey] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (restoreData && Object.keys(restoreData).length > 0) {
+      const restored = Object.entries(restoreData).map(([key, value]) => ({ key, value }));
+      setItems(restored);
+    }
+  }, [restoreData]);
 
   async function save(key: string, value: unknown) {
     setBusy(key);

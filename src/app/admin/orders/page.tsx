@@ -1,26 +1,69 @@
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Package, DollarSign, CheckCircle, Clock } from "lucide-react";
+import { Package, DollarSign, CheckCircle, Clock, Loader2 } from "lucide-react";
 
-export const dynamic = "force-dynamic";
+interface Order {
+  id: string;
+  project_slug: string;
+  customer_name: string;
+  customer_email: string;
+  amount: number | null;
+  currency: string;
+  status: string;
+  paystack_ref: string;
+  created_at: string;
+}
 
-export default async function AdminOrdersPage() {
-  const admin = createAdminClient();
+export default function AdminOrdersPage() {
+  const router = useRouter();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  const { data: orders, count } = await admin
-    .from("orders")
-    .select("id, project_slug, customer_name, customer_email, amount, currency, status, paystack_ref, created_at")
-    .order("created_at", { ascending: false });
+  const fetchOrders = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/orders/list");
+      const json = await res.json();
+      if (json.ok) setOrders(json.orders);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const list = orders ?? [];
-  const totalOrders = count ?? list.length;
-  const totalRevenue = list
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
+  async function updateOrderStatus(orderId: string, status: string) {
+    setUpdatingId(orderId);
+    try {
+      const res = await fetch("/api/admin/orders/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId, status }),
+      });
+      const json = await res.json();
+      if (json.ok) {
+        await fetchOrders();
+        router.refresh();
+      }
+    } finally {
+      setUpdatingId(null);
+    }
+  }
+
+  const totalOrders = orders.length;
+  const totalRevenue = orders
     .filter((o) => o.status === "delivered")
     .reduce((sum, o) => sum + (o.amount ?? 0), 0);
-  const pending = list.filter((o) => o.status === "pending").length;
-  const delivered = list.filter((o) => o.status === "delivered").length;
+  const pending = orders.filter((o) => o.status === "pending").length;
+  const delivered = orders.filter((o) => o.status === "delivered").length;
 
   const stats = [
     { label: "Total Orders", value: totalOrders, icon: Package },
@@ -109,7 +152,16 @@ export default async function AdminOrdersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border/40">
-              {list.length === 0 ? (
+              {loading ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-6 py-12 text-center text-muted-foreground"
+                  >
+                    <Loader2 className="mx-auto h-5 w-5 animate-spin" />
+                  </td>
+                </tr>
+              ) : orders.length === 0 ? (
                 <tr>
                   <td
                     colSpan={6}
@@ -119,7 +171,7 @@ export default async function AdminOrdersPage() {
                   </td>
                 </tr>
               ) : (
-                list.map((order) => (
+                orders.map((order) => (
                   <tr
                     key={order.id}
                     className="transition-colors hover:bg-muted/40"
@@ -170,9 +222,48 @@ export default async function AdminOrdersPage() {
                           View Delivery
                         </Link>
                       ) : (
-                        <span className="text-xs text-muted-foreground">
-                          —
-                        </span>
+                        <div className="flex items-center gap-2">
+                          {order.status === "pending" && (
+                            <button
+                              onClick={() =>
+                                updateOrderStatus(order.id, "delivered")
+                              }
+                              disabled={updatingId === order.id}
+                              className={cn(
+                                buttonVariants({
+                                  variant: "default",
+                                  size: "sm",
+                                }),
+                                "text-xs"
+                              )}
+                            >
+                              {updatingId === order.id ? (
+                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                              ) : null}
+                              Mark as Delivered
+                            </button>
+                          )}
+                          {order.status !== "failed" && (
+                            <button
+                              onClick={() =>
+                                updateOrderStatus(order.id, "failed")
+                              }
+                              disabled={updatingId === order.id}
+                              className={cn(
+                                buttonVariants({
+                                  variant: "destructive",
+                                  size: "sm",
+                                }),
+                                "text-xs"
+                              )}
+                            >
+                              {updatingId === order.id ? (
+                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                              ) : null}
+                              Mark as Failed
+                            </button>
+                          )}
+                        </div>
                       )}
                     </td>
                   </tr>

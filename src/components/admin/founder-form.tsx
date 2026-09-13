@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { saveFounder } from "@/lib/admin/actions";
 import { ImageUpload } from "@/components/admin/image-upload";
@@ -9,9 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-type Props = { initial: Record<string, unknown> | null };
+type Props = { initial: Record<string, unknown> | null; restoreData?: Record<string, unknown> | null };
 
-export function FounderForm({ initial }: Props) {
+export function FounderForm({ initial, restoreData }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -24,6 +24,20 @@ export function FounderForm({ initial }: Props) {
     linkedin: (initial?.linkedin as string) ?? "",
     github: (initial?.github as string) ?? "",
   });
+
+  useEffect(() => {
+    if (restoreData && Object.keys(restoreData).length > 0) {
+      setForm({
+        name: (restoreData.name as string) ?? "",
+        role: (restoreData.role as string) ?? "",
+        bio: (restoreData.bio as string) ?? "",
+        photo_url: (restoreData.photo_url as string) ?? "",
+        twitter: (restoreData.twitter as string) ?? "",
+        linkedin: (restoreData.linkedin as string) ?? "",
+        github: (restoreData.github as string) ?? "",
+      });
+    }
+  }, [restoreData]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

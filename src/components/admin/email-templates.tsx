@@ -1,17 +1,31 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
-import { ChevronDown, ChevronUp, Mail } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { ChevronDown, ChevronUp, Mail, Save } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { saveSetting } from "@/lib/admin/actions";
 
 interface Template {
+  key: string;
   name: string;
   subject: string;
   body: string;
 }
 
-const templates: Template[] = [
-  {
+const TEMPLATE_KEYS = [
+  { key: "email_contact_confirmation", name: "Contact Confirmation" },
+  { key: "email_newsletter_welcome", name: "Newsletter Welcome" },
+  { key: "email_delivery_access", name: "Delivery Access" },
+  { key: "email_auto_reply", name: "Auto-Reply" },
+] as const;
+
+const FALLBACK_TEMPLATES: Record<string, Template> = {
+  email_contact_confirmation: {
+    key: "email_contact_confirmation",
     name: "Contact Confirmation",
     subject: "We received your message — Founda Technologies",
     body: `<!DOCTYPE html>
@@ -26,7 +40,8 @@ const templates: Template[] = [
 </body>
 </html>`,
   },
-  {
+  email_newsletter_welcome: {
+    key: "email_newsletter_welcome",
     name: "Newsletter Welcome",
     subject: "Welcome to the Founda Technologies newsletter",
     body: `<!DOCTYPE html>
@@ -46,7 +61,8 @@ const templates: Template[] = [
 </body>
 </html>`,
   },
-  {
+  email_delivery_access: {
+    key: "email_delivery_access",
     name: "Delivery Access",
     subject: "Your project is ready — Founda Technologies",
     body: `<!DOCTYPE html>
@@ -62,7 +78,8 @@ const templates: Template[] = [
 </body>
 </html>`,
   },
-  {
+  email_auto_reply: {
+    key: "email_auto_reply",
     name: "Auto-Reply",
     subject: "We've got your inquiry — Founda Technologies",
     body: `<!DOCTYPE html>
@@ -77,17 +94,109 @@ const templates: Template[] = [
 </body>
 </html>`,
   },
-];
+};
 
 export function EmailTemplates() {
+  const router = useRouter();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [templates, setTemplates] = useState<Template[]>(() =>
+    TEMPLATE_KEYS.map((t) => ({ ...FALLBACK_TEMPLATES[t.key] }))
+  );
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  useEffect(() => {
+    async function fetchTemplates() {
+      try {
+        const res = await fetch("/api/admin/settings");
+        if (!res.ok) throw new Error("Failed to fetch settings");
+        const data: { key: string; value: unknown }[] = await res.json();
+
+        setTemplates((prev) =>
+          prev.map((tpl) => {
+            const found = data.find((s) => s.key === tpl.key);
+            if (found && typeof found.value === "string") {
+              try {
+                const parsed = JSON.parse(found.value) as { subject?: string; body?: string };
+                return {
+                  ...tpl,
+                  subject: parsed.subject ?? tpl.subject,
+                  body: parsed.body ?? tpl.body,
+                };
+              } catch {
+                return tpl;
+              }
+            }
+            return tpl;
+          })
+        );
+      } catch {
+        // Fall back to hardcoded defaults
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchTemplates();
+  }, []);
+
+  function updateField(index: number, field: "subject" | "body", value: string) {
+    setTemplates((prev) =>
+      prev.map((tpl, i) => (i === index ? { ...tpl, [field]: value } : tpl))
+    );
+    setFeedback(null);
+  }
+
+  async function handleSave(tpl: Template) {
+    setSaving(tpl.key);
+    setFeedback(null);
+    try {
+      const payload = JSON.stringify({ subject: tpl.subject, body: tpl.body });
+      await saveSetting(tpl.key, payload);
+      setFeedback({ type: "success", message: `"${tpl.name}" saved successfully.` });
+      router.refresh();
+    } catch (e: unknown) {
+      setFeedback({
+        type: "error",
+        message: e instanceof Error ? e.message : "Failed to save template.",
+      });
+    }
+    setSaving(null);
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        {[0, 1, 2, 3].map((i) => (
+          <Card key={i}>
+            <div className="flex items-center gap-3 p-6">
+              <Mail className="h-5 w-5 text-muted-foreground animate-pulse" />
+              <div className="h-4 w-48 animate-pulse rounded bg-muted" />
+            </div>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
+      {feedback && (
+        <div
+          className={`rounded-lg border px-4 py-3 text-sm ${
+            feedback.type === "success"
+              ? "border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200"
+              : "border-destructive/30 bg-destructive/10 text-destructive"
+          }`}
+        >
+          {feedback.message}
+        </div>
+      )}
+
       {templates.map((tpl, i) => {
         const isOpen = openIndex === i;
         return (
-          <Card key={i}>
+          <Card key={tpl.key}>
             <button
               type="button"
               className="flex w-full items-center justify-between p-6 text-left"
@@ -100,14 +209,42 @@ export function EmailTemplates() {
                   <p className="text-sm text-muted-foreground">Subject: {tpl.subject}</p>
                 </div>
               </div>
-              {isOpen ? <ChevronUp className="h-5 w-5 text-muted-foreground" /> : <ChevronDown className="h-5 w-5 text-muted-foreground" />}
+              {isOpen ? (
+                <ChevronUp className="h-5 w-5 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-5 w-5 text-muted-foreground" />
+              )}
             </button>
             {isOpen && (
-              <CardContent>
-                <div className="rounded-md border bg-muted/30 p-4">
-                  <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-muted-foreground">
-                    {tpl.body}
-                  </pre>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-muted-foreground">Subject</label>
+                  <Input
+                    value={tpl.subject}
+                    onChange={(e) => updateField(i, "subject", e.target.value)}
+                    placeholder="Email subject line"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-muted-foreground">Body (HTML)</label>
+                  <Textarea
+                    value={tpl.body}
+                    onChange={(e) => updateField(i, "body", e.target.value)}
+                    rows={12}
+                    placeholder="Email body (HTML)"
+                    className="font-mono text-xs"
+                  />
+                </div>
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    disabled={saving === tpl.key}
+                    onClick={() => handleSave(tpl)}
+                  >
+                    <Save className="h-4 w-4" aria-hidden />
+                    {saving === tpl.key ? "Saving..." : "Save"}
+                  </Button>
                 </div>
               </CardContent>
             )}
