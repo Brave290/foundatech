@@ -16,6 +16,8 @@ const NAV_ITEMS = [
 export function MobileBottomNav() {
   const pathname = usePathname();
 
+  if (pathname.startsWith("/projects/")) return null;
+
   return (
     <nav
       className={cn(

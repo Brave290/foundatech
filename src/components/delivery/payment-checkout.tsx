@@ -54,9 +54,9 @@ export function PaymentCheckout({ projectSlug, projectName, amountKobo, currency
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="lg" className="min-h-12" />}>
+      <Button size="lg" className="min-h-12" onClick={() => setOpen(true)}>
         <ShoppingCart className="h-4 w-4" aria-hidden /> Get started
-      </DialogTrigger>
+      </Button>
       <DialogContent className="max-w-md">
         <DialogTitle className="font-serifdisplay text-xl font-bold">Order {projectName}</DialogTitle>
         <p className="text-sm text-muted-foreground">
