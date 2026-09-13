@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Mail, CheckCircle, XCircle } from "lucide-react";
 import { updateLeadStatus } from "@/lib/admin/actions";
 import { Button } from "@/components/ui/button";
+import { ExportCsv } from "@/components/admin/export-csv";
+import { BulkActions } from "@/components/admin/bulk-actions";
 
 type Lead = {
   id: string;
@@ -18,9 +20,14 @@ type Lead = {
 export function LeadsManager({ leads }: { leads: Lead[] }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string[]>([]);
 
   const newLeads = leads.filter((l) => l.status === "new");
   const handled = leads.filter((l) => l.status !== "new");
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  }
 
   async function handleStatus(id: string, status: "replied" | "closed") {
     setBusy(id);
@@ -31,11 +38,18 @@ export function LeadsManager({ leads }: { leads: Lead[] }) {
 
   return (
     <div className="container py-10">
-      <div className="mb-6">
-        <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary">Inquiries</p>
-        <h1 className="font-serifdisplay text-3xl font-bold tracking-tight">Leads</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Contact form submissions. Mark as replied or closed when handled.</p>
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary">Inquiries</p>
+          <h1 className="font-serifdisplay text-3xl font-bold tracking-tight">Leads</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Contact form submissions. Mark as replied or closed when handled.</p>
+        </div>
+        <ExportCsv data={leads.map((l) => ({ name: l.name, email: l.email, message: l.message, status: l.status, date: l.created_at }))} filename="leads.csv" label="Export CSV" />
       </div>
+
+      {selected.length > 0 && (
+        <BulkActions selected={selected} onClear={() => setSelected([])} table="contact_submissions" />
+      )}
 
       {newLeads.length === 0 ? (
         <div className="rounded-lg border border-border/60 bg-muted/20 p-8 text-center">
@@ -48,12 +62,20 @@ export function LeadsManager({ leads }: { leads: Lead[] }) {
           {newLeads.map((l) => (
             <div key={l.id} className="rounded-lg border border-border/60 bg-background p-4">
               <div className="mb-2 flex items-start justify-between gap-3">
-                <div>
-                  <p className="font-bold">{l.name}</p>
-                  <a href={`mailto:${l.email}`} className="flex items-center gap-1 font-mono text-xs text-primary hover:underline">
-                    <Mail className="h-3 w-3" aria-hidden /> {l.email}
-                  </a>
-                  <p className="font-mono text-[10px] text-muted-foreground">{new Date(l.created_at).toLocaleString()}</p>
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(l.id)}
+                    onChange={() => toggleSelect(l.id)}
+                    className="mt-1 h-4 w-4 rounded border-border"
+                  />
+                  <div>
+                    <p className="font-bold">{l.name}</p>
+                    <a href={`mailto:${l.email}`} className="flex items-center gap-1 font-mono text-xs text-primary hover:underline">
+                      <Mail className="h-3 w-3" aria-hidden /> {l.email}
+                    </a>
+                    <p className="font-mono text-[10px] text-muted-foreground">{new Date(l.created_at).toLocaleString()}</p>
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <Button size="sm" variant="outline" disabled={busy === l.id} onClick={() => handleStatus(l.id, "replied")}>

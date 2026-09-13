@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, FolderOpen, User, Settings, Star, Mail, LogOut } from "lucide-react";
+import { LayoutDashboard, FolderOpen, User, Settings, Star, Mail, Package, MailCheck, LogOut } from "lucide-react";
 import { SignOut } from "@/components/admin/sign-out";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +13,8 @@ const LINKS = [
   { href: "/admin/testimonials", label: "Testimonials", icon: Star },
   { href: "/admin/reviews", label: "Reviews", icon: Star },
   { href: "/admin/leads", label: "Leads", icon: Mail },
+  { href: "/admin/orders", label: "Orders", icon: Package },
+  { href: "/admin/email-templates", label: "Emails", icon: MailCheck },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 

@@ -17,6 +17,9 @@ import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { FirstLoadVeil } from "@/components/site/first-load-veil";
 import { HideOnAdmin } from "@/components/site/hide-on-admin";
 import { AnalyticsBeacon } from "@/components/site/analytics-beacon";
+import { MobileBottomNav } from "@/components/site/mobile-bottom-nav";
+import WhatsAppFloat from "@/components/site/whatsapp-float";
+import { KeyboardShortcuts } from "@/components/site/keyboard-shortcuts";
 import { FoundaLogo } from "@/components/brand/founda-logo";
 import { siteConfig } from "@/config/site";
 import "./globals.css";
@@ -65,6 +68,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <main id="main" className="flex-1">{children}</main>
                   <HideOnAdmin><Footer logo={logo} /></HideOnAdmin>
                   <HideOnAdmin><BackToTop /></HideOnAdmin>
+                  <HideOnAdmin><WhatsAppFloat /></HideOnAdmin>
+                  <HideOnAdmin><MobileBottomNav /></HideOnAdmin>
+                  <KeyboardShortcuts />
                 </TooltipProvider>
               </QueryProvider>
             </VeilProvider>

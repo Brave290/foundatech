@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { retrieveContext } from "@/lib/ai/rag";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY;
 const MAX_REQUESTS_PER_DAY = 50;
@@ -41,9 +42,22 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { message } = (await req.json()) as { message?: string };
+    const { message, session_id } = (await req.json()) as { message?: string; session_id?: string };
     if (!message?.trim()) return NextResponse.json({ error: "Message required" }, { status: 400 });
     if (message.length > 500) return NextResponse.json({ error: "Message too long (max 500 characters)" }, { status: 400 });
+
+    const admin = createAdminClient();
+    const now = new Date().toISOString();
+    const sid = session_id?.slice(0, 64) || crypto.randomUUID();
+
+    await admin.from("chat_history").insert({
+      session_id: sid,
+      role: "user",
+      content: message.trim(),
+      created_at: now,
+    }).then(({ error }) => {
+      if (error) console.error("[chat] Failed to save user message:", error);
+    });
 
     const chunks = await retrieveContext(message);
     const context = chunks.map((c) => `[${c.source}] ${c.title}: ${c.content}`).join("\n\n");
@@ -64,7 +78,17 @@ export async function POST(req: NextRequest) {
     if (!res.ok) return NextResponse.json({ error: "AI service error" }, { status: 502 });
     const json = await res.json();
     const reply = json.choices?.[0]?.message?.content ?? "I couldn't generate a response. Please try again.";
-    return NextResponse.json({ reply });
+
+    await admin.from("chat_history").insert({
+      session_id: sid,
+      role: "assistant",
+      content: reply,
+      created_at: new Date().toISOString(),
+    }).then(({ error }) => {
+      if (error) console.error("[chat] Failed to save assistant message:", error);
+    });
+
+    return NextResponse.json({ reply, session_id: sid });
   } catch {
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }

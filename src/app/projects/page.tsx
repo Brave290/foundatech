@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { getPublishedProjects } from "@/lib/data/projects";
 import type { Metadata } from "next";
+import { ProjectSearch } from "@/components/projects/project-search";
 
 export const metadata: Metadata = {
   title: "Projects",
@@ -24,6 +25,8 @@ export default async function ProjectsPage() {
           Every project here shipped with real clients, real users, and real outcomes.
         </p>
       </div>
+
+      <ProjectSearch projects={projects.map((p) => ({ name: p.name, category: p.category ?? "Uncategorized", tags: p.tags, slug: p.slug }))} onFilter={() => {}} />
 
       {projects.length === 0 ? (
         <div className="mx-auto max-w-xl rounded-lg border border-border/60 bg-muted/20 p-8 text-center">

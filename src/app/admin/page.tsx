@@ -3,18 +3,22 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { buttonVariants } from "@/components/ui/button";
 import { SignOut } from "@/components/admin/sign-out";
 import { cn } from "@/lib/utils";
+import { AnalyticsChart } from "@/components/admin/analytics-chart";
+import AdminSearch from "@/components/admin/admin-search";
+import { Package, DollarSign, MessageSquare, Users } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
   const admin = createAdminClient();
   const weekAgo = new Date(Date.now() - 7 * 864e5).toISOString();
-  const [projects, pendingReviews, newLeads, subs, views] = await Promise.all([
+  const [projects, pendingReviews, newLeads, subs, views, orders] = await Promise.all([
     admin.from("projects").select("*", { count: "exact", head: true }),
     admin.from("reviews").select("*", { count: "exact", head: true }).eq("status", "pending"),
     admin.from("contact_submissions").select("*", { count: "exact", head: true }).eq("status", "new"),
     admin.from("subscribers").select("*", { count: "exact", head: true }),
     admin.from("page_views").select("path, device, session_id, created_at").gte("created_at", weekAgo).limit(5000),
+    admin.from("orders").select("*", { count: "exact", head: true }),
   ]);
 
   const rows = views.data ?? [];
@@ -32,10 +36,10 @@ export default async function AdminDashboard() {
   const maxDay = Math.max(1, ...days.map((d) => d.count));
 
   const stats = [
-    { label: "Projects", value: projects.count ?? 0 },
-    { label: "Pending reviews", value: pendingReviews.count ?? 0 },
-    { label: "New leads", value: newLeads.count ?? 0 },
-    { label: "Subscribers", value: subs.count ?? 0 },
+    { label: "Projects", value: projects.count ?? 0, icon: Package },
+    { label: "Orders", value: orders.count ?? 0, icon: DollarSign },
+    { label: "Pending reviews", value: pendingReviews.count ?? 0, icon: MessageSquare },
+    { label: "New leads", value: newLeads.count ?? 0, icon: Users },
   ];
 
   return (
@@ -46,6 +50,7 @@ export default async function AdminDashboard() {
           <h1 className="font-serifdisplay text-3xl font-bold tracking-tight sm:text-4xl">Welcome back</h1>
         </div>
         <div className="flex gap-2">
+          <AdminSearch />
           <Link href="/" className={cn(buttonVariants({ variant: "outline" }))}>View site</Link>
           <SignOut />
         </div>
@@ -54,7 +59,10 @@ export default async function AdminDashboard() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((s) => (
           <div key={s.label} className="rounded-lg border border-border/60 bg-muted/20 p-6">
-            <p className="font-serifdisplay text-4xl font-bold">{s.value}</p>
+            <div className="flex items-center gap-3">
+              <s.icon className="h-5 w-5 text-primary" />
+              <p className="font-serifdisplay text-4xl font-bold">{s.value}</p>
+            </div>
             <p className="mt-1 text-sm text-muted-foreground">{s.label}</p>
           </div>
         ))}
@@ -68,14 +76,7 @@ export default async function AdminDashboard() {
             <span><strong className="text-foreground">{uniqueVisitors}</strong> unique</span>
             <span><strong className="text-foreground">{mobile}</strong> mobile / <strong className="text-foreground">{desktop}</strong> desktop</span>
           </div>
-          <div className="flex h-28 items-end gap-2">
-            {days.map((d) => (
-              <div key={d.key} className="flex flex-1 flex-col items-center gap-1">
-                <div className="w-full rounded-t bg-primary/70" style={{ height: `${(d.count / maxDay) * 100}%`, minHeight: d.count ? 4 : 1 }} />
-                <span className="font-mono text-[9px] text-muted-foreground">{d.key.slice(8)}</span>
-              </div>
-            ))}
-          </div>
+          <AnalyticsChart data={days.map((d) => ({ date: d.key, count: d.count }))} />
         </div>
         <div className="rounded-lg border border-border/60 bg-muted/20 p-6">
           <h2 className="mb-4 font-display text-sm font-bold uppercase tracking-wider">Top pages</h2>
